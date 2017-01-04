@@ -40,6 +40,42 @@ app.get('/srv/:html', function(req,res) {
     }
 })
 
+app.use('/prz', function(req,res) { 
+    try {
+        var fsPath = curPath+req.path.substring(1);
+        console.log(fsPath);
+        res.writeHead(200)
+        var fileStream = fs.createReadStream(fsPath)
+        fileStream.pipe(res)
+        fileStream.on('error',function(e) {
+            res.writeHead(404)     // assume the file doesn't exist
+            res.end()
+        })
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
+})
+
+app.use('/resources', function(req,res) { 
+    try {
+        var fsPath = curPath+'resources'+req.path;
+        console.log(fsPath);
+        res.writeHead(200)
+        var fileStream = fs.createReadStream(fsPath)
+        fileStream.pipe(res)
+        fileStream.on('error',function(e) {
+            res.writeHead(404)     // assume the file doesn't exist
+            res.end()
+        })
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
+})
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 
@@ -71,6 +107,28 @@ app.get('/files', function(req, res) {
       res.json(data);
     });
 });
+
+app.get('/preview', function(req, res) {
+    try {
+        var fsPath1 = baseDir+'/reveal-top.html';
+        var fsPath2 = baseDir+'/reveal-bot.html';
+        //res.writeHead(200);
+        var reply = "";
+        fs.readFile(fsPath1, "utf8", function(err, data){
+            reply += data;
+            reply += "<section data-markdown=\"/prz/slides/"+curSlide+"\"></section>";
+            fs.readFile(fsPath2, "utf8", function(err, data){
+                reply += data;
+                res.end(reply);
+            });
+            
+        });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }  
+})
 
 app.get('/setPath', function (req, res) {
     curPath = req.query.path;

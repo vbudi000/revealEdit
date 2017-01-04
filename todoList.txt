@@ -1,0 +1,3 @@
+3. Error handling (new slide not ended with .md; exceptions)
+4. Upload image
+5. move slide + first/last

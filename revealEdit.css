@@ -90,10 +90,10 @@ td {
 
 .title {
     position: fixed;
-    width: 700px;
-    height: 30px;
+    width: 48%;
+    height: 8%;
     top: 0;
-    left: 280px;
+    left: 27%;
 }
 
 .bottom {
