@@ -62,9 +62,9 @@
 </DIV>
 <DIV class="dialogBox" id="newImageDialog">
     <DIV class="dialogTitle"><P>New Image file</P></DIV>
-    <form enctype="multipart/form-data" action="/uploadImage" method="post">
+    <form enctype="multipart/form-data" action="/upload" method="post">
     <P>Name: <input type="file" id="imageFileName" />
-    <INPUT type=submit>Upload</INPUT>
+    <INPUT type=submit value="Upload" />
     </form>
     <P><BUTTON onclick=hideDialog()>Cancel</Button></P>
 </DIV>
@@ -82,8 +82,6 @@
             var jdata = JSON.parse(data);
             var tblHead = "<table><tr><th>Slide Names</th></tr>";
             var tblBody = "";
-            //console.log(data);
-            console.log(jdata.length);
             while (jdata.length>0) {
                 var dir = jdata.pop();
                 // 
@@ -137,8 +135,10 @@
                 }
                 if (sldHeader.includes("unit-bkgrnd.png")) {
                     document.getElementById("slideType").value="H1";
+                    document.getElementById("slideContent").setAttribute("disabled","disabled");
                 } else if (sldHeader.includes("topic-bkgrnd.png")) {
                     document.getElementById("slideType").value="H2";
+                    document.getElementById("slideContent").setAttribute("disabled","disabled");
                 } else {
                     document.getElementById("slideType").value="H3";
                 }
@@ -208,9 +208,9 @@
         var newSldName = document.getElementById("newSlideName").value;
         var newSldType = document.getElementById("newSlideType").value;
         var newSldPos  = document.getElementById("newSlidePos").value;
-        console.log(newSldType);
         
         if (newSldName != "") {
+            if ((newSldName.length<3) || (!newSldName.endsWith('.md'))) newSldName += '.md';
             $.get("/newSlide?name="+newSldName+"&pos="+newSldPos).then(function(data) {
                 $.get("/setSlide?slide="+newSldName).then(function(data) {
                     var reqBody = {

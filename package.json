@@ -4,6 +4,7 @@
     "connect-busboy": "0.0.2",
     "express": "*",
     "json": "*",
+    "multer": "^1.2.1",
     "nodegit": "^0.16.0",
     "urlencoded": "*"
   }

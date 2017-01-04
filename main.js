@@ -4,7 +4,8 @@ var path = require('path');
 var Git = require('nodegit');
 var http = require('http');
 var bodyParser = require('body-parser');
-var busboy = require('connect-busboy');
+//var busboy = require('connect-busboy');
+var multer = require('multer');
 var readline = require('readline');
 var exec = require('child_process').exec;
 var app = express();
@@ -79,9 +80,10 @@ app.use('/resources', function(req,res) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 
-app.use(busboy()); 
+//app.use(busboy()); 
 
 app.get('/files', function(req, res) {
+    try {
     var currentDir =  baseDir;
     var query = req.query.path || '';
     if (query) currentDir = query;
@@ -106,6 +108,11 @@ app.get('/files', function(req, res) {
       //sdata = _.sortBy(data, function(f) { return f.Name });
       res.json(data);
     });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 });
 
 app.get('/preview', function(req, res) {
@@ -131,7 +138,8 @@ app.get('/preview', function(req, res) {
 })
 
 app.get('/setPath', function (req, res) {
-    curPath = req.query.path;
+    try {
+        curPath = req.query.path;
     console.log("Working with: "+curPath);
     fs.access(curPath, fs.F_OK, function(err) {
         // must create path
@@ -142,24 +150,35 @@ app.get('/setPath', function (req, res) {
             res.end(curPath);
         }
     });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.get('/newPath', function(req,res) {
-    curPath = req.query.path;
-            fs.mkdir(curPath,function(err) {
-                if (err) {
-                    res.status(500).end("Error creating directory "+err);
-                } else {
+    try {
+        curPath = req.query.path;
+        fs.mkdir(curPath,function(err) {
+            if (err) {
+                res.status(500).end("Error creating directory "+err);
+            } else {
                     // clone repos
-                    Git.Clone("https://github.com/vbudi000/emptyreveal", curPath);
-                    var fileExist = false;
-                    while (!fileExist) {
-                        if (fs.existsSync(curPath+'/slides/list.json')) fileExist = true;
-                    }
-                    res.end("done");
-                    // starting npm
+                Git.Clone("https://github.com/vbudi000/emptyreveal", curPath);
+                var fileExist = false;
+                while (!fileExist) {
+                    if (fs.existsSync(curPath+'/slides/list.json')) fileExist = true;
                 }
-            });
+                res.end("done");
+                    // starting npm
+            }
+        });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.get('/setSlide',function (req,res) {
@@ -169,43 +188,92 @@ app.get('/setSlide',function (req,res) {
 })
 
 app.get('/listSlides', function (req, res) {
-   fs.readFile( curPath + "/slides/list.json", 'utf8', function (err, data) {
-       slideList = data;
-       res.end( slideList );
-   });
+    try {
+        fs.readFile( curPath + "/slides/list.json", 'utf8', function (err, data) {
+            slideList = data;
+            res.end( slideList );
+        });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.get('/listImages', function (req, res) {
-   fs.readdir(curPath + "/resources/", 'utf8', function (err, files) {
-       imgList = files;
-       console.log(files);
-       res.end( JSON.stringify(imgList) );
-   });
+    try {
+        fs.readdir(curPath + "/resources/", 'utf8', function (err, files) {
+            imgList = files;
+            console.log(files);
+            res.end( JSON.stringify(imgList) );
+        });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
+var storage =   multer.diskStorage({
+  destination: function (req, file, callback) {
+    console.log("calbak 1");
+    callback(null, './uploads');
+    console.log("calbak 2");
+  },
+  filename: function (req, file, callback) {
+    console.log("calbak 3");
+    callback(null,Date.now()+file.originalname);
+    console.log("calbak 4");
+  }
+});
+
+var upload = multer({ storage : storage}).single('imageFileNme');
+
+app.post('/upload',function(req,res){
+    upload(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        res.end("File is uploaded");
+    });    
+});
+
 app.post('/uploadImage', function (req, res) {
-    console.log(JSON.stringify(req.files));
-    fs.readFile(req.files.imageFileName.path, function (err, data) {
-        var newPath = curPath + 'resources/' + req.files.imageFileName.name;
-        fs.writeFile(newPath, data, function (err) {
-            res.redirect("back");
-        });
-    });
+    try {
+        //var mybusboy = new busboy({ headers : req.headers });
+        console.log('ooo');
+        
+  busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    console.log('got file', filename, mimetype, encoding);
+
+  }).on('finish', function() {
+    // show a link to the uploaded file
+    res.writeHead(200, {'content-type': 'text/html'});
+    res.end('<a href="/file/' + fileId.toString() + '">download file</a>');
+  });
+
+  req.pipe(busboy);
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.get('/readSlide', function (req,res) {
-    var rd = readline.createInterface({
-        input: fs.createReadStream(curPath + "/slides/"+curSlide),
-        output: process.stdout,
-        terminal: false
-    });
-    var fileData = [];
-    linenum = 0;
-    slideData.slideContent = "";
-    slideData.slideNotes = "";
-    inContent = 1;
-    inNotes = 0;
-    rd.on('line', function(line) {
+    try {
+        var rd = readline.createInterface({
+            input: fs.createReadStream(curPath + "/slides/"+curSlide),
+            output: process.stdout,
+            terminal: false
+        });
+        var fileData = [];
+        linenum = 0;
+        slideData.slideContent = "";
+        slideData.slideNotes = "";
+        inContent = 1;
+        inNotes = 0;
+        rd.on('line', function(line) {
             linenum = linenum + 1;
             console.log(linenum+" "+line);
             if (linenum==1) 
@@ -219,40 +287,57 @@ app.get('/readSlide', function (req,res) {
                 if (line.indexOf("</aside")>=0) inNotes = 0;
                 else slideData.slideNotes += "\n"+line;
             }
-    });
-    rd.on('close', function() {
-       res.end(JSON.stringify(slideData));
-    });
+        });
+        rd.on('close', function() {
+            res.end(JSON.stringify(slideData));
+        });
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.post('/writeSlide', function(req, res) {
-    slideData.slideHeader = req.body.slideHeader;
-    slideData.slideContent = req.body.slideContent;
-    slideData.slideNotes = req.body.slideNotes;
-    var data = slideData.slideHeader + '\n' + slideData.slideContent + '\n' + '<aside class="notes">' + '\n' + slideData.slideNotes + '\n' + '</aside>';
-    console.log(data);
-    fs.writeFileSync(curPath + "/slides/"+curSlide, data );
-    res.end("OK");
+    try {
+        slideData.slideHeader = req.body.slideHeader;
+        slideData.slideContent = req.body.slideContent;
+        slideData.slideNotes = req.body.slideNotes;
+        var data = slideData.slideHeader + '\n' + slideData.slideContent + '\n' + '<aside class="notes">' + '\n' + slideData.slideNotes + '\n' + '</aside>';
+        console.log(data);
+        fs.writeFileSync(curPath + "/slides/"+curSlide, data );
+        res.end("OK");
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 app.get('/newSlide', function (req, res) {
-    sldName = req.query.name;
-    sldPos = req.query.pos;
-    console.log(slideList);
-    var jsonList = JSON.parse(slideList);
-    jsonList.push(sldName);
-    console.log(JSON.stringify(jsonList));
-    fs.writeFileSync( curPath + "/slides/list.json", JSON.stringify(jsonList));
-
-    curSlide = sldName;
-    res.end(sldName);
+    try {
+        var sldName = req.query.name;
+        var sldPos = req.query.pos;
+        var jsonList = JSON.parse(slideList);
+        var numSld = jsonList.length;
+        if (sldPos=='first') jsonList.splice(0,0,sldName);
+        else if (sldPos=='last') jsonList.push(sldName);
+        else if (sldPos<numSld) jsonList.splice(sldPos,0,sldName);
+        else jsonList.push(sldName);
+        fs.writeFileSync( curPath + "/slides/list.json", JSON.stringify(jsonList));
+        curSlide = sldName;
+        res.end(sldName);
+    } catch(e) {
+        res.writeHead(500)
+        res.end()     // end the response so browsers don't hang
+        console.log(e.stack)
+    }
 })
 
 var server = app.listen(8081, function () {
+var host = server.address().address
+var port = server.address().port
 
-  var host = server.address().address
-  var port = server.address().port
-
-  console.log("Example app listening at http://%s:%s", host, port)
+console.log("Reveal Edit app at http://%s:%s/srv/index.html", host, port)
 
 })
