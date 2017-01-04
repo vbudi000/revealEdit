@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<TITLE>Open existing or create new presentation</TITLE>
+<link rel="stylesheet" type="text/css" href="revealEdit.css"> 
+</HEAD>
+<BODY>
+<H1>Select presentation</H1>
+
+<DIV class="mainArea">
+  <FORM id="openPath" name="openPath">
+    <P>Path: <input type="text" id="pathValue" name="pathValue" size="120"></P>
+  </FORM>
+  <BUTTON onClick="createNew()">Create New</BUTTON><BUTTON onClick="openExisting()">Open</BUTTON>
+</DIV>
+
+<DIV class="fileSelect">
+
+<P>You can also select the path from the table below and click <B>Load</B></P>
+
+<P><button onclick="selectPath()" value="Use current">Load</BUTTON></P>
+<table class="linksholder" id="linksholder">
+</table>
+</DIV>
+<script src="/srv/jquery.min.js"></script>
+<SCRIPT>
+    function createNew() {
+        console.log("Create new");
+        var x = document.getElementById("pathValue").value;
+        $.get('/newPath?path='+x).then(function(data){
+            // go to editView
+            console.log("before redirect");
+            window.location.replace("/srv/editView.html");
+        });
+        console.log(x);
+    }
+
+    function openExisting() {
+        console.log("Open Existing");
+        var x = document.getElementById("pathValue").value;
+        $.get('/setPath?path='+x).then(function(data){
+            // go to editView
+            window.location.replace("/srv/editView.html");
+        });
+        console.log(x);
+    }
+
+    function selectPath() {
+        var curPath = document.getElementById("curPath").innerHTML;
+        console.log(curPath);
+        
+        document.openPath.pathValue.value = curPath;
+        return curPath;
+    }
+  
+    function rePopulate(newPath) {
+        $.get('/files?path='+newPath).then(function(data){
+          var tblHead = "<tr><th>Name</th><th>Path</th></tr>";
+          var tblBody = "";
+          //tblData += "<tr onclick='rePopulate(..)'><td>..</td><td>..</td></tr>";
+          while (data.length>0) {
+             var dir = data.pop();
+             dir = JSON.stringify(dir);
+             dir = JSON.parse(dir);
+             var tdstr = "";
+             var tdend = "";
+             if (data.length==1) {
+                tdstr = '<div class="curPath" id="curPath">';
+                tdend = '</div>';
+             } 
+             tblBody = "<tr onclick='rePopulate(\""+dir.Path.replace(/\\/g,"\\\\")+"\")'><td>"+dir.Name+'</td><td>'+tdstr+dir.Path+tdend+'</td></tr>' + tblBody;
+             
+          }
+          $("#linksholder").html(tblHead+tblBody);
+        });   
+    }
+      
+  rePopulate("");
+  
+  </script>
+</SCRIPT>
+</BODY>
+</HTML>

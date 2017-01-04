@@ -1,0 +1,259 @@
+<HTML>
+<HEAD>
+<TITLE>Edit slide</TITLE>
+<link rel="stylesheet" type="text/css" href="revealEdit.css"> 
+</HEAD>
+<BODY>
+<DIV class="title">
+<H1>Edit presentation</H1>
+</DIV>
+<DIV class="slideList">
+  <div class="slideTable">
+  </div>
+  <button id="newSlide" onclick="newSlide()">New Slide</button>
+</DIV>
+<DIV class="imageList">
+  <div class="imageTable">
+  </div>
+  <button id="newImage" onclick="newImage()">New Image</button>
+</DIV>
+<DIV class="slidePreview">
+  <iframe id="sldPreviewIframe" src="http://localhost:9000/reveal.html" width="100%" height="100%">
+  <script src="/srv/marked.js"></script>
+  <script src="/srv/markdown.js"></script>
+</iframe> 
+</DIV>
+<DIV class="slideEdit">
+  <DIV class="titleSlide">
+    <P>Title: <br/> <INPUT id="slideTitle" name="slideTitle" size="80" />
+    <P>Type: <br/> <select onchange="typeChange(this)" name="slideType" id="slideType">
+        <option value="H1">Lesson title</option>
+        <option value="H2">Topic title</option>
+        <option value="H3">Regular slide</option>
+    </select>
+  </DIV>
+  <DIV class="markdown">
+    <P>Content: <br/>
+    <textarea name="slideContent" id="slideContent" cols="80" rows="15"></textarea>
+  </DIV>
+</DIV>
+<DIV class="notesEdit">
+   <P>Notes: <br/>
+   <textarea name="slideNotes" id="slideNotes" cols="40" rows="30"></textarea>
+</DIV>
+<DIV class="bottom">
+<button onclick="saveSlide()">Save Slide</button>
+<button onclick="quit()">Close Presentation</button>
+<div id="messages"></div>
+</DIV>
+<DIV class="dialogBox" id="newSlideDialog">
+    <DIV class="dialogTitle"><P>New Slide</P></DIV>
+    <P>Name: <INPUT id="newSlideName" size=40 /></P>
+    <P>Slide type: <select name="newSlideType" id="newSlideType">
+        <option value="H1">Lesson title</option>
+        <option value="H2">Topic title</option>
+        <option value="H3" selected="selected">Regular slide</option>
+        </SELECT></P>
+    <P>Slide position: <select name="newSlidePos" id="newSlidePos">
+        <option value="first">First</option>
+        <option selected="selected" value="last">Last</option>
+    </SELECT></P>
+    <P><BUTTON onclick=createSlide()>Create</BUTTON><BUTTON onclick=hideDialog()>Cancel</Button></P>
+</DIV>
+<DIV class="dialogBox" id="newImageDialog">
+    <DIV class="dialogTitle"><P>New Image file</P></DIV>
+    <form enctype="multipart/form-data" action="/uploadImage" method="post">
+    <P>Name: <input type="file" id="imageFileName" />
+    <INPUT type=submit>Upload</INPUT>
+    </form>
+    <P><BUTTON onclick=hideDialog()>Cancel</Button></P>
+</DIV>
+<script src="/srv/jquery.min.js"></script>
+<SCRIPT>
+    function typeChange(select) {
+         var selectedOption = select.options[select.selectedIndex];
+         console.log ("The selected option is " + selectedOption.value);
+         if (selectedOption.value=="H3") document.getElementById("slideContent").removeAttribute("disabled");
+         else document.getElementById("slideContent").setAttribute("disabled","disabled");
+    }
+
+    function loadList() {
+        $.get('/listSlides').then(function(data){
+            var jdata = JSON.parse(data);
+            var tblHead = "<table><tr><th>Slide Names</th></tr>";
+            var tblBody = "";
+            //console.log(data);
+            console.log(jdata.length);
+            while (jdata.length>0) {
+                var dir = jdata.pop();
+                // 
+                tblBody = "<tr><td>"+dir+'<button  onclick=loadSlide("'+jdata.length+'","'+dir+'")>Select</button>'+'</td></tr>' + tblBody;
+            }
+            $(".slideTable").html(tblHead+tblBody+'</table>');
+        });
+        initSlide();
+    }
+    
+    function loadImages() {
+        $.get('/listImages').then(function(data){
+            var jdata = JSON.parse(data);
+            var tblHead = "<table><tr><th>Image Names</th></tr>";
+            var tblBody = "";
+            //console.log(data);
+            console.log(jdata.length);
+            while (jdata.length>0) {
+                var dir = jdata.pop();
+                tblBody = "<tr><td>"+dir+'</td></tr>' + tblBody;
+            }
+            $(".imageTable").html(tblHead+tblBody+'</table>');
+        });
+    }
+    
+    function loadSlide(num,curSlide) {
+        $.get("/setSlide?slide="+curSlide).then(function(data) {
+            $.get('/readSlide').then(function(data){
+                var jdata = JSON.parse(data);
+                console.log(num);
+                document.getElementById("sldPreviewIframe").removeAttribute("disabled");
+                document.getElementById("slideContent").removeAttribute("disabled");
+                document.getElementById("slideNotes").removeAttribute("disabled");
+                document.getElementById("slideTitle").removeAttribute("disabled");
+                document.getElementById("slideType").removeAttribute("disabled");
+
+                document.getElementById("sldPreviewIframe").src = "http://localhost:9000/#/"+num;
+                // parse slideContent into header and data
+                var sldHeader = jdata.slideHeader;
+                var sldContent = jdata.slideContent;
+                var sldTitle = "";
+                if (sldContent.includes("\n#")) {
+                    var start = sldContent.indexOf("\n#")+1;
+                    if (start>=0) {
+                        var end = sldContent.indexOf("\n", start);
+                        if (end==-1) end=sldContent.length;
+                        sldTitle = sldContent.substring(start, end);
+                        sldTitle = sldTitle.substring(sldTitle.indexOf(" "));
+                        sldContent = sldContent.substring(end+1);
+                    } 
+                }
+                if (sldHeader.includes("unit-bkgrnd.png")) {
+                    document.getElementById("slideType").value="H1";
+                } else if (sldHeader.includes("topic-bkgrnd.png")) {
+                    document.getElementById("slideType").value="H2";
+                } else {
+                    document.getElementById("slideType").value="H3";
+                }
+                document.getElementById("slideTitle").value = sldTitle;
+                document.getElementById("slideContent").value = sldContent;
+                document.getElementById("slideNotes").value = jdata.slideNotes;
+            });
+        });
+    }
+
+    function initSlide() {
+        document.getElementById("sldPreviewIframe").setAttribute("disabled","disabled");
+        document.getElementById("slideContent").setAttribute("disabled","disabled");
+        document.getElementById("slideNotes").setAttribute("disabled","disabled");
+        document.getElementById("slideTitle").setAttribute("disabled","disabled");
+        document.getElementById("slideType").setAttribute("disabled","disabled");
+    }
+    
+    function saveSlide() {
+        var sType = document.getElementById("slideType").value;
+        if (sType == "H1") {
+            console.log("H1 - save");
+            $.post('/writeSlide',{
+                "slideHeader": getHeader("H1"),
+                "slideContent": "# "+document.getElementById("slideTitle").value, 
+                "slideNotes":  document.getElementById("slideNotes").value
+                },function(data){
+                   console.log(data);
+                });
+        } else if (sType == "H2") {
+            console.log("H2 - save");
+            $.post('/writeSlide',{
+                "slideHeader": getHeader("H2"),
+                "slideContent": "## "+document.getElementById("slideTitle").value, 
+                "slideNotes":  document.getElementById("slideNotes").value
+                },function(data){
+                   console.log(data);
+                });
+        } else {
+            console.log("H3 - save");
+            var stitle = document.getElementById("slideTitle").value;
+            var sContent = ""
+            if (stitle!="") sContent = "### "+stitle+"\n"+document.getElementById("slideContent").value;
+            else sContent  = document.getElementById("slideContent").value;
+            $.post('/writeSlide',{
+                "slideHeader": getHeader("H3"),
+                "slideContent": sContent, 
+                "slideNotes":  document.getElementById("slideNotes").value
+                },function(data){
+                   console.log(data);
+                });
+        }
+    }    
+    
+    function newSlide() {
+        document.getElementById("newSlideDialog").style.display = "block";
+    }
+
+    function uploadImage() {
+        var imgName = document.getElementById("imageFileName").value;
+        console.log(imgName);
+        
+    }
+    
+    function createSlide() {
+        var newSldName = document.getElementById("newSlideName").value;
+        var newSldType = document.getElementById("newSlideType").value;
+        var newSldPos  = document.getElementById("newSlidePos").value;
+        console.log(newSldType);
+        
+        if (newSldName != "") {
+            $.get("/newSlide?name="+newSldName+"&pos="+newSldPos).then(function(data) {
+                $.get("/setSlide?slide="+newSldName).then(function(data) {
+                    var reqBody = {
+                        "slideHeader": getHeader(newSldType),
+                        "slideContent": "### ", 
+                        "slideNotes":  "<P>\n</P>"
+                    };
+                    console.log(reqBody);
+                    $.post('/writeSlide',{
+                        "slideHeader": getHeader(newSldType),
+                        "slideContent": "### ", 
+                        "slideNotes":  "<P>\n</P>"
+                    },function(data){
+                        console.log(data);
+                    });
+                });
+            });
+        }
+        // add slide to list.json;
+        loadList();
+        document.getElementById("newSlideDialog").style.display = "none";
+    }
+    
+    function hideDialog() {
+        document.getElementById("newSlideDialog").style.display = "none";
+        document.getElementById("newImageDialog").style.display = "none";
+    }
+    
+    function newImage() {
+        document.getElementById("newImageDialog").style.display = "block";
+    }
+
+    function getHeader(sldType) {
+        if (sldType=="H1") return "<!-- .slide: data-background=\"resources/unit-bkgrnd.png\" data-background-size=\"contain\" data-background-position=\"left\"  -->";
+        else if (sldType=="H2") return "<!-- .slide: data-background=\"resources/topic-bkgrnd.png\" data-background-size=\"contain\" data-background-position=\"left\"  -->";
+        else return "<!-- .slide: data-background=\"resources/footer-page.png\" data-background-size=\"contain\" data-background-position=\"bottom\"  -->";
+    }
+    
+    function quit() {
+        window.location.replace("/srv/fileSelect.html")
+    }
+    loadList();
+    loadImages();
+    //loadSlide();
+</SCRIPT>
+</BODY>
+</HTML>
