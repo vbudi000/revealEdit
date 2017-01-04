@@ -23,6 +23,10 @@ var slideData = {
 
 var baseDir = __dirname   // or whatever base directory you want
 
+app.get('/', function(req,res) {
+    res.redirect('/srv/index.html');
+})
+
 app.get('/srv/:html', function(req,res) { 
     try {
         var fsPath = baseDir+'/'+req.params.html;
@@ -213,30 +217,6 @@ app.get('/listImages', function (req, res) {
         console.log(e.stack)
     }
 })
-
-var storage =   multer.diskStorage({
-  destination: function (req, file, callback) {
-    console.log("calbak 1");
-    callback(null, './uploads');
-    console.log("calbak 2");
-  },
-  filename: function (req, file, callback) {
-    console.log("calbak 3");
-    callback(null,Date.now()+file.originalname);
-    console.log("calbak 4");
-  }
-});
-
-var upload = multer({ storage : storage}).single('imageFileNme');
-
-app.post('/upload',function(req,res){
-    upload(req,res,function(err) {
-        if(err) {
-            return res.end("Error uploading file.");
-        }
-        res.end("File is uploaded");
-    });    
-});
 
 app.post('/uploadImage', function (req, res) {
     try {
