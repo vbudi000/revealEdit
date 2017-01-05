@@ -44,6 +44,7 @@
 <DIV class="bottom">
 <button onclick="saveSlide()">Save Slide</button>
 <button onclick="quit()">Close Presentation</button>
+<button onclick="exportZip()">Export ZIP</button>
 <div id="messages"></div>
 </DIV>
 <DIV class="dialogBox" id="newSlideDialog">
@@ -61,9 +62,10 @@
     <P><BUTTON onclick=createSlide()>Create</BUTTON><BUTTON onclick=hideDialog()>Cancel</Button></P>
 </DIV>
 <DIV class="dialogBox" id="newImageDialog">
+    <P><B>This feature is not implemented yet, press "CANCEL" </B></P>
     <DIV class="dialogTitle"><P>New Image file</P></DIV>
     <form enctype="multipart/form-data" action="/upload" method="post">
-    <P>Name: <input type="file" id="imageFileName" />
+    <P>Name: <input type="file" name="imageFileName" />
     <INPUT type=submit value="Upload" />
     </form>
     <P><BUTTON onclick=hideDialog()>Cancel</Button></P>
@@ -167,7 +169,8 @@
                 "slideContent": "# "+document.getElementById("slideTitle").value, 
                 "slideNotes":  document.getElementById("slideNotes").value
                 },function(data){
-                   console.log(data);
+                    console.log(data);
+                    document.getElementById("sldPreviewIframe").src = "/preview";
                 });
         } else if (sType == "H2") {
             console.log("H2 - save");
@@ -177,6 +180,7 @@
                 "slideNotes":  document.getElementById("slideNotes").value
                 },function(data){
                    console.log(data);
+                    document.getElementById("sldPreviewIframe").src = "/preview";
                 });
         } else {
             console.log("H3 - save");
@@ -190,6 +194,7 @@
                 "slideNotes":  document.getElementById("slideNotes").value
                 },function(data){
                    console.log(data);
+                    document.getElementById("sldPreviewIframe").src = "/preview";
                 });
         }
     }    
@@ -247,6 +252,10 @@
         if (sldType=="H1") return "<!-- .slide: data-background=\"resources/unit-bkgrnd.png\" data-background-size=\"contain\" data-background-position=\"left\"  -->";
         else if (sldType=="H2") return "<!-- .slide: data-background=\"resources/topic-bkgrnd.png\" data-background-size=\"contain\" data-background-position=\"left\"  -->";
         else return "<!-- .slide: data-background=\"resources/footer-page.png\" data-background-size=\"contain\" data-background-position=\"bottom\"  -->";
+    }
+    
+    function exportZip() {
+        window.alert("Not implemented");
     }
     
     function quit() {

@@ -47,15 +47,21 @@ app.get('/srv/:html', function(req,res) {
 
 app.use('/prz', function(req,res) { 
     try {
-        var fsPath = curPath+req.path.substring(1);
-        console.log(fsPath);
-        res.writeHead(200)
-        var fileStream = fs.createReadStream(fsPath)
-        fileStream.pipe(res)
-        fileStream.on('error',function(e) {
-            res.writeHead(404)     // assume the file doesn't exist
-            res.end()
-        })
+        var subPath = req.path.substring(1);
+        if (subPath.startsWith("..")) {
+            res.writeHead(500);
+            res.end();
+        } else {}
+            var fsPath = curPath+subPath;
+            console.log(fsPath);
+            res.writeHead(200)
+            var fileStream = fs.createReadStream(fsPath)
+            fileStream.pipe(res)
+            fileStream.on('error',function(e) {
+                res.writeHead(404)     // assume the file doesn't exist
+                res.end()
+            })
+        }
     } catch(e) {
         res.writeHead(500)
         res.end()     // end the response so browsers don't hang
