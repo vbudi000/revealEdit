@@ -4,8 +4,29 @@
     "connect-busboy": "0.0.2",
     "express": "*",
     "json": "*",
+    "body-parser": "*",
+    "readline": "*",
     "multer": "^1.2.1",
     "nodegit": "^0.16.0",
     "urlencoded": "*"
-  }
+  },
+  "name": "revealEdit",
+  "version": "1.0.0",
+  "main": "main.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vbudi000/revealEdit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vbudi000/revealEdit/issues"
+  },
+  "homepage": "https://github.com/vbudi000/revealEdit#readme",
+  "description": ""
 }

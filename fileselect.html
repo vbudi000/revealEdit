@@ -9,6 +9,7 @@
 <DIV class="mainArea">
   <FORM id="openPath" name="openPath">
     <P>Path: <input type="text" id="pathValue" name="pathValue" size="120"></P>
+    <P>Title: <input type="text" id="presTitle" name="presTitle" size="120"></P>
   </FORM>
   <BUTTON onClick="createNew()">Create New</BUTTON><BUTTON onClick="openExisting()">Open</BUTTON>
 </DIV>
@@ -26,7 +27,8 @@
     function createNew() {
         console.log("Create new");
         var x = document.getElementById("pathValue").value;
-        $.get('/newPath?path='+x).then(function(data){
+        var y = document.getElementById("presTitle").value;
+        $.get('/newPath?path='+x+'&title='+y).then(function(data){
             // go to editView
             console.log("before redirect");
             window.location.replace("/srv/editView.html");

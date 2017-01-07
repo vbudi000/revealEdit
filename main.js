@@ -180,6 +180,14 @@ app.get('/newPath', function(req,res) {
                 while (!fileExist) {
                     if (fs.existsSync(curPath+'/slides/list.json')) fileExist = true;
                 }
+                var pTitle = req.query.title;
+                if (pTitle != '') {
+                    fs.readFile(curPath+'package.json', "utf8", function(err, data){
+                        var pData = JSON.parse(data);
+                        pData.name = pTitle;
+                        fs.writeFileSync(curPath+'package.json', JSON.stringify(pData));
+                    });
+                }
                 res.end("done");
                     // starting npm
             }
