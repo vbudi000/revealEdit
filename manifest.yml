@@ -1,0 +1,8 @@
+applications:
+- name: revealEdit
+  memory: 256M
+  disk_quota: 512M
+  host: revealEdit
+  domain: mybluemix.net
+  command: node main.js
+  path: .
