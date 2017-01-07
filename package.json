@@ -22,11 +22,11 @@
     "url": "git+https://github.com/vbudi000/revealEdit.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "vbudi@yahoo.com",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/vbudi000/revealEdit/issues"
   },
   "homepage": "https://github.com/vbudi000/revealEdit#readme",
-  "description": ""
+  "description": "Editor for reveal.js presentation"
 }
