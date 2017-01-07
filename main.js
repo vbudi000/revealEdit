@@ -51,7 +51,7 @@ app.use('/prz', function(req,res) {
         if (subPath.startsWith("..")) {
             res.writeHead(500);
             res.end();
-        } else {}
+        } else {
             var fsPath = curPath+subPath;
             console.log(fsPath);
             res.writeHead(200)

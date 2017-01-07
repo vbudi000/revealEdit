@@ -7,8 +7,7 @@
     "body-parser": "*",
     "readline": "*",
     "multer": "^1.2.1",
-    "nodegit": "^0.16.0",
-    "urlencoded": "*"
+    "nodegit": "^0.15.1"
   },
   "name": "revealEdit",
   "version": "1.0.0",
