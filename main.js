@@ -29,12 +29,13 @@ app.get('/', function(req,res) {
 
 app.get('/srv/:html', function(req,res) { 
     try {
-        var fsPath = baseDir+'/'+req.params.html;
+        var fsPath = path.join(baseDir,req.params.html);
         console.log(fsPath);
-        res.writeHead(200)
+        //res.writeHead(200)
         var fileStream = fs.createReadStream(fsPath)
         fileStream.pipe(res)
         fileStream.on('error',function(e) {
+            console.log(e);
             res.writeHead(404)     // assume the file doesn't exist
             res.end()
         })
@@ -52,12 +53,13 @@ app.use('/prz', function(req,res) {
             res.writeHead(500);
             res.end();
         } else {
-            var fsPath = curPath+subPath;
+            var fsPath = path.join(curPath,subPath);
             console.log(fsPath);
-            res.writeHead(200)
+            //res.writeHead(200)
             var fileStream = fs.createReadStream(fsPath)
             fileStream.pipe(res)
             fileStream.on('error',function(e) {
+                console.log(e);
                 res.writeHead(404)     // assume the file doesn't exist
                 res.end()
             })

@@ -11,7 +11,7 @@
     <P>Path: <input type="text" id="pathValue" name="pathValue" size="120"></P>
     <P>Title: <input type="text" id="presTitle" name="presTitle" size="120"></P>
   </FORM>
-  <BUTTON onClick="createNew()">Create New</BUTTON><BUTTON onClick="openExisting()">Open</BUTTON>
+  <BUTTON onClick="createNew()" name="createNew" id="createNew">Create New</BUTTON><BUTTON onClick="openExisting()" name="open" id="open">Open</BUTTON>
 </DIV>
 
 <DIV class="fileSelect">
@@ -28,6 +28,10 @@
         console.log("Create new");
         var x = document.getElementById("pathValue").value;
         var y = document.getElementById("presTitle").value;
+        document.getElementById("createNew").addAttribute("disabled","disabled");
+        document.getElementById("open").addAttribute("disabled","disabled");
+        document.getElementById("linksholder").addAttribute("disabled","disabled");
+        window.alert("Cloning repo, please wait ...");
         $.get('/newPath?path='+x+'&title='+y).then(function(data){
             // go to editView
             console.log("before redirect");
@@ -77,6 +81,9 @@
     }
       
   rePopulate("");
+        document.getElementById("createNew").removeAttribute("disabled");
+        document.getElementById("open").removeAttribute("disabled");
+        document.getElementById("linksholder").removeAttribute("disabled");
   
   </script>
 </SCRIPT>
