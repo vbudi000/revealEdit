@@ -2,7 +2,6 @@ var express = require('express');
 var targz = require('targz');
 var url = require('url');
 var path = require('path');
-var Git = require('nodegit');
 var http = require('http');
 var https = require('https');
 var bodyParser = require('body-parser');
@@ -75,7 +74,7 @@ app.use('/prz', function(req,res) {
 
 app.use('/resources', function(req,res) { 
     try {
-        var fsPath = curPath+'resources'+req.path;
+        var fsPath = path.join(curPath,'resources'+req.path);
         console.log(fsPath);
         res.writeHead(200)
         var fileStream = fs.createReadStream(fsPath)

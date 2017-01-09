@@ -29,7 +29,7 @@
         document.getElementById("createNew").setAttribute("disabled","disabled");
         document.getElementById("open").setAttribute("disabled","disabled");
         document.getElementById("linksholder").setAttribute("disabled","disabled");
-        $.get('/newPath?path='+x+'&title='+y).then(function(data){
+        $.get('/newPath?path='+x).then(function(data){
             // go to editView
             console.log("before redirect");
             window.location.replace("/srv/editView.html");
