@@ -1,13 +1,13 @@
 {
   "dependencies": {
+    "body-parser": "*",
     "child-process": "^1.0.2",
     "connect-busboy": "0.0.2",
     "express": "*",
     "json": "*",
-    "body-parser": "*",
-    "readline": "*",
     "multer": "^1.2.1",
-    "nodegit": "^0.15.1"
+    "readline": "*",
+    "targz": "^1.0.1"
   },
   "name": "revealEdit",
   "version": "1.0.0",

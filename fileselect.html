@@ -9,7 +9,6 @@
 <DIV class="mainArea">
   <FORM id="openPath" name="openPath">
     <P>Path: <input type="text" id="pathValue" name="pathValue" size="120"></P>
-    <P>Title: <input type="text" id="presTitle" name="presTitle" size="120"></P>
   </FORM>
   <BUTTON onClick="createNew()" name="createNew" id="createNew">Create New</BUTTON><BUTTON onClick="openExisting()" name="open" id="open">Open</BUTTON>
 </DIV>
@@ -27,16 +26,15 @@
     function createNew() {
         console.log("Create new");
         var x = document.getElementById("pathValue").value;
-        var y = document.getElementById("presTitle").value;
-        document.getElementById("createNew").addAttribute("disabled","disabled");
-        document.getElementById("open").addAttribute("disabled","disabled");
-        document.getElementById("linksholder").addAttribute("disabled","disabled");
-        window.alert("Cloning repo, please wait ...");
+        document.getElementById("createNew").setAttribute("disabled","disabled");
+        document.getElementById("open").setAttribute("disabled","disabled");
+        document.getElementById("linksholder").setAttribute("disabled","disabled");
         $.get('/newPath?path='+x+'&title='+y).then(function(data){
             // go to editView
             console.log("before redirect");
             window.location.replace("/srv/editView.html");
         });
+        window.alert("Cloning repo, please wait ...");
         console.log(x);
     }
 

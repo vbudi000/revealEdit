@@ -1,8 +1,10 @@
 var express = require('express');
+var targz = require('targz');
 var url = require('url');
 var path = require('path');
 var Git = require('nodegit');
 var http = require('http');
+var https = require('https');
 var bodyParser = require('body-parser');
 //var busboy = require('connect-busboy');
 var multer = require('multer');
@@ -176,22 +178,39 @@ app.get('/newPath', function(req,res) {
             if (err) {
                 res.status(500).end("Error creating directory "+err);
             } else {
-                    // clone repos
-                Git.Clone("https://github.com/vbudi000/emptyreveal", curPath);
-                var fileExist = false;
-                while (!fileExist) {
-                    if (fs.existsSync(curPath+'/slides/list.json')) fileExist = true;
-                }
-                var pTitle = req.query.title;
-                if (pTitle != '') {
-                    fs.readFile(curPath+'package.json', "utf8", function(err, data){
-                        var pData = JSON.parse(data);
-                        pData.name = pTitle;
-                        fs.writeFileSync(curPath+'package.json', JSON.stringify(pData));
+                https.get('https://codeload.github.com/vbudi000/emptyReveal/legacy.tar.gz/master', (res1) => {
+                    console.log('statusCode:', res1.statusCode);
+                    console.log('headers:', res1.headers);
+                    fs.writeFileSync(path.join(curPath,'emptyReveal.tar.gz'),"");
+                    res1.on('data', function(d) {
+                        fs.appendFileSync(path.join(curPath,'emptyReveal.tar.gz'),d);
                     });
-                }
-                res.end("done");
-                    // starting npm
+                    res1.on('end', function() {
+                        console.log("done");
+                        targz.decompress({
+                            src: path.join(curPath,'emptyReveal.tar.gz'),
+                            dest: curPath,
+                            tar: {
+                                map: function(header) {
+                                    var fname = header.name;
+                                    header.name = fname.substring(fname.indexOf('/')+1);
+                                    return header;
+                                }
+                            }
+                        }, function(err){
+                            if(err) {
+                                console.log(err);
+                            } else {
+                                console.log("Done!");
+                                fs.unlink(path.join(curPath,'emptyReveal.tar.gz'),function(err){console.log(err)});
+                                res.end("done");
+                            }
+                        });            
+                    });
+                }).on('error', (e) => {
+                    console.error(e);
+                });
+                    // clone repos
             }
         });
     } catch(e) {
