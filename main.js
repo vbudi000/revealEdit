@@ -240,7 +240,7 @@ app.get('/listSlides', function (req, res) {
 
 app.get('/listImages', function (req, res) {
     try {
-        fs.readdir(curPath + "/resources/", 'utf8', function (err, files) {
+        fs.readdir(path.join(curPath,"resources"), function (err, files) {
             imgList = files;
             console.log(files);
             res.end( JSON.stringify(imgList) );
@@ -348,10 +348,36 @@ app.get('/newSlide', function (req, res) {
     }
 })
 
-var server = app.listen(8081, function () {
+app.get('/makeZip', function(req,res) {
+    try {
+        targz.compress({
+            src: curPath,
+            dest: path.join(curPath,'revealEdit.tar.gz'),
+        }, function(err){
+            if(err) {
+                console.log(err);
+            } else {
+                console.log("Done!");
+                res.sendFile(path.join(curPath,'revealEdit.tar.gz'), function(err) {
+                    if (err) {
+                        conole.log(err);
+                        res.status(err.status).end();
+                    } else {
+                        fs.unlink(path.join(curPath,'revealEdit.tar.gz'),function(err){console.log(err)});
+                    }
+                });
+            }
+        });            
+        
+    } catch (e) {
+        
+    }
+})
+
+var server = app.listen(8080, function () {
 var host = server.address().address
 var port = server.address().port
 
-console.log("Reveal Edit app at http://%s:%s/srv/index.html", host, port)
+console.log("Reveal Edit app at http://%s:%s/", host, port)
 
 })
